@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.ProductMapper">
+    <select id="getList" resultType="com.jieee.pojo.Product">
+        select
+            p.*,
+            pc.name as category_name
+        from
+            furry.product as p
+                join
+            furry.product_category as pc
+            on
+                p.category_id = pc.id
+        where p.status = 1
+    </select>
+
+    <select id="productList" resultType="com.jieee.pojo.Product">
+        select
+            p.*,
+            pc.name as category_name,
+            ifnull(sum(ps.quantity), 0) as sold
+        from
+            furry.product as p
+                join
+            furry.product_category as pc on p.category_id = pc.id
+                left join
+            furry.product_sales as ps on p.id = ps.product_id
+        where
+            p.status = 1
+        group by
+            p.id
+    </select>
+
+
+    <select id="dltProductList" resultType="com.jieee.pojo.Product">
+        select
+            p.*,
+            pc.name as category_name
+        from
+            furry.product as p
+                join
+            furry.product_category as pc
+            on
+                p.category_id = pc.id
+        where p.status = 0
+    </select>
+
+    <update id="updateProduct">
+        update furry.product
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="categoryId != 0">
+                category_id = #{categoryId},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="image != null">
+                image = #{image},
+            </if>
+            <if test="cost != 0">
+                cost = #{cost},
+            </if>
+            <if test="price != 0">
+                price = #{price},
+            </if>
+            <if test="stock != 0">
+                stock = #{stock},
+            </if>
+            <if test="rating != 0">
+                rating = #{rating},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <select id="search" resultType="com.jieee.pojo.Product">
+        select
+        p.*,
+        pc.name as category_name
+        from
+        furry.product as p
+        join
+        furry.product_category as pc
+        on
+        p.category_id = pc.id
+        <where>
+            <if test="name != null">
+                AND p.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="categoryId != 0">
+                AND p.category_id = #{categoryId}
+            </if>
+            AND status = 1
+        </where>
+    </select>
+    <select id="getSelectedProduct" resultType="com.jieee.pojo.Product">
+        SELECT
+            p.*,
+            pc.name AS category_name
+        FROM
+            furry.product AS p
+                JOIN
+            furry.product_category AS pc ON p.category_id = pc.id
+        WHERE
+            p.price BETWEEN #{minPrice} AND #{maxPrice}
+          AND status = 1 and stock > 1
+        <if test="categories != 0">
+            AND p.category_id IN
+            <foreach collection="categories" item="category" open="(" separator="," close=")">
+                #{category}
+            </foreach>
+        </if>
+    </select>
+    <select id="getProductWithId" resultType="com.jieee.pojo.Product">
+        select
+        p.*,
+        pc.name as category_name,
+        sum(ps.quantity) as sales
+        from
+        furry.product as p
+        join
+        furry.product_category as pc on p.category_id = pc.id
+        left join
+        furry.product_sales as ps on p.id = ps.product_id
+        <where>
+            p.id= #{id}
+        </where>
+        group by
+        p.id,
+        pc.name
+    </select>
+    <select id="productSales" resultType="com.jieee.pojo.ProductPurchase">
+        select
+            ps.*,
+            p.name as product_Name,
+            up.purchase_time as purchaseTime,
+            u.username as username
+        from
+            furry.product_sales as ps
+                join
+            furry.product as p on ps.product_id = p.id
+                join
+            furry.user_purchase_history as up on ps.user_purchase_id = up.id
+                join
+            furry.user as u on up.user_id = u.id
+    </select>
+
+    <update id="updateCategory">
+        update furry.product_category
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="productRateList" resultType="com.jieee.pojo.Rating">
+        select
+            r.*,
+            p.name as productName,
+            u.username as userName
+        from
+            furry.rating as r
+        join
+            furry.product as p on r.product_id = p.id
+        join
+            furry.user as u on r.user_id = u.id
+
+    </select>
+    <select id="getProductReview" resultType="com.jieee.pojo.Rating">
+        select
+            r.rate as rate,
+            p.rating as totalRate
+        from
+            furry.rating as r
+        join
+            furry.product as p on r.product_id = p.id
+        where product_id = #{productId}
+    </select>
+    <select id="getProductComment" resultType="com.jieee.pojo.Rating">
+        select
+            r.id as id,
+            r.rate as rate,
+            r.comment as comment,
+            r.added_time as addedTime,
+            u.username as username,
+            u.image as image
+        from
+            furry.rating as r
+                join
+            furry.user as u on r.user_id = u.id
+        where product_id = #{productId}
+    </select>
+    <select id="getNegativeStock" resultType="com.jieee.pojo.Product">
+        select *
+        from furry.product
+        where stock &lt; 0
+    </select>
+    <select id="getExceeding" resultType="com.jieee.pojo.Product">
+        select *
+        from furry.product
+        where cost &gt; price
+
+    </select>
+
+</mapper>

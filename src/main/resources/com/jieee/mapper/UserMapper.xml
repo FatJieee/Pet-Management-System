@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.UserMapper">
+    <update id="updateSelfInfo">
+        update furry.user
+        <set>
+        <if test="username != null and username != ''">
+            username = #{username},
+        </if>
+        <if test="newPass != null and password != ''">
+            password = #{newPass},
+        </if>
+        <if test="age != null">
+            age = #{age},
+        </if>
+        <if test="gender != null">
+            gender = #{gender},
+        </if>
+        <if test="image != null">
+            image = #{image},
+        </if>
+        <if test="contact != null">
+            contact = #{contact},
+        </if>
+        <if test="email != null">
+            email = #{email},
+        </if>
+        <if test="state != null">
+            state = #{state},
+        </if>
+        <if test="address != null">
+            address = #{address},
+        </if>
+        <if test="updateTime != null">
+            update_time = #{updateTime},
+        </if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateInfo">
+        update furry.user
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="contact != null">
+                contact = #{contact},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="role != null">
+                role = #{role},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <select id="search" resultType="com.jieee.pojo.User">
+        select * from furry.user
+        <where>
+            <if test="username != null">
+                AND username = #{username}
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+        </where>
+    </select>
+    <select id="getCart" resultType="com.jieee.pojo.Cart">
+        select
+            c.*,
+            p.name as product_Name,
+            p.price as price,
+            p.image as image,
+            p.description as description,
+            pc.name as category_Name
+        from
+            furry.cart as c
+            join
+            furry.product as p on c.product_id = p.id
+            join
+            furry.product_category as pc on p.category_id = pc.id
+        where c.user_id = #{userId}
+    </select>
+    <select id="getProductHistory" resultType="com.jieee.pojo.ProductPurchase">
+        select DISTINCT
+            up.*,
+            ps.product_id as productId,
+            ps.quantity as quantity,
+            ps.price as price,
+            ps.rating as rating,
+            p.name as productName,
+            p.image as image
+        from
+            furry.user_purchase_history as up
+                join
+            furry.product_sales as ps on up.id = ps.user_purchase_id
+                join
+            furry.product as p on ps.product_id = p.id
+        where up.user_id = #{userId}
+    </select>
+    <select id="getAllProductHistory" resultType="com.jieee.pojo.ProductPurchase">
+        select
+            up.*,
+            ps.product_id as productId,
+            ps.quantity as quantity,
+            ps.price as price,
+            p.name as product_Name,
+            p.image as image,
+            u.username as username
+        from
+            furry.user_purchase_history as up
+                join
+            furry.product_sales as ps on up.id = ps.user_purchase_id
+                join
+            furry.product as p on ps.product_id = p.id
+                join
+            furry.user as u on up.user_id = u.id
+    </select>
+    <select id="checkVoucher" resultType="com.jieee.pojo.Voucher">
+        select
+            *
+        from
+            furry.voucher
+        <where>
+            <if test="code != null">
+                AND code = #{code}
+            </if>
+            <if test="userId != 0">
+                AND user_id = #{userId}
+            </if>
+        and type = 1
+        </where>
+    </select>
+    <update id="updateVoucher">
+        update furry.voucher
+        <set>
+            <if test="userId != 0">
+                user_id = #{userId},
+            </if>
+            <if test="code != null">
+                code = #{code},
+            </if>
+            <if test="discount != 0">
+                discount = #{discount},
+            </if>
+            <if test="type != 0">
+                type = #{type},
+            </if>
+            <if test="expiredTime != null">
+                expired_time = #{expiredTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="getProductId" resultType="java.lang.Integer">
+        select
+            p.id as productId
+        from
+            furry.product as p
+       where
+           #{productName} = p.name;
+    </select>
+
+    <update id="updateProductRate">
+        UPDATE furry.product
+        SET rating = (
+            SELECT AVG(rate)
+            FROM furry.rating
+            WHERE product_id = #{productId}
+        )
+        WHERE id = #{productId}
+    </update>
+    <update id="updateProductSalesRating">
+    update furry.product_sales
+    set rating = #{rate}
+    where product_id = #{productId} and user_purchase_id = #{id}
+    </update>
+</mapper>

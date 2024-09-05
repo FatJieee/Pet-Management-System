@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.TransactionMapper">
+    <select id="list" resultType="com.jieee.pojo.Transaction">
+        select
+            t.*,
+            u.username,
+            p.name AS product_name
+        from
+            furry.transaction as t
+                join
+            furry.product_transaction pt ON t.id = pt.transaction_id
+                join
+            furry.product p ON pt.product_id = p.id
+                join
+            furry.user u ON t.user_id = u.id
+        where p.status = 1
+    </select>
+
+    <insert id="addProductTransaction">
+        INSERT INTO furry.product_transaction (product_id, product_category_id, transaction_id, transaction_user_id)
+        SELECT #{productId}, p.category_id, LAST_INSERT_ID(), #{userId}
+        FROM furry.product as p
+        WHERE p.id = #{productId};
+    </insert>
+
+    <insert id="insertProductSales">
+        INSERT INTO furry.product_sales (product_id, user_purchase_id, quantity, price)
+        VALUES
+        <foreach collection="productPurchase" item="purchase" separator=",">
+            (
+            #{purchase.productId},
+            LAST_INSERT_ID(),
+            #{purchase.quantity},
+            #{purchase.price}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateProductCost">
+        UPDATE furry.product as p
+            JOIN furry.product_transaction as pt on p.id = pt.product_id
+            SET p.cost = #{cost},
+                p.update_time = now()
+        WHERE pt.transaction_id = LAST_INSERT_ID();
+    </update>
+
+    <update id="updateProductStock">
+        UPDATE furry.product as p
+            JOIN furry.product_transaction as pt on LAST_INSERT_ID() = pt.transaction_id
+            join furry.transaction as t on LAST_INSERT_ID() = t.id
+            SET p.update_time = now(),
+                p.stock = CASE
+                WHEN t.type = 'Purchase' THEN p.stock + #{quantity}
+                WHEN t.type = 'Return' THEN p.stock - #{quantity}
+                ELSE p.stock
+        END
+        WHERE p.id = pt.product_id;
+    </update>
+
+    <update id="editProductCost">
+        UPDATE furry.product as p
+            JOIN furry.product_transaction as pt on #{id} = pt.transaction_id
+            SET p.cost = #{cost},
+                p.update_time = now()
+        WHERE #{productId} = pt.product_id
+    </update>
+
+    <update id="editProductStock">
+        UPDATE furry.product as p
+            JOIN furry.product_transaction as pt on #{id} = pt.transaction_id
+            join furry.transaction as t on #{id} = t.id
+            SET p.update_time = now(),
+                p.stock = CASE
+                WHEN t.type = 'Purchase' AND #{type} = 'Purchase' THEN p.stock - t.quantity + #{quantity}
+                WHEN t.type = 'Purchase' AND #{type} = 'Return' OR #{type} = 'Sales' THEN p.stock - t.quantity - #{quantity}
+                WHEN t.type = 'Return' AND #{type} = 'Purchase' THEN p.stock + t.quantity + #{quantity}
+                WHEN t.type = 'Return' AND #{type} = 'Return' OR #{type} = 'Return'THEN p.stock + t.quantity - #{quantity}
+                ELSE p.stock
+        END
+        WHERE p.id = pt.product_id;
+    </update>
+
+    <update id="editTransaction">
+        update furry.transaction
+        <set>
+            <if test="userId != null and userId != ''">
+                user_id = #{userId},
+            </if>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="quantity != 0">
+                quantity = #{quantity},
+            </if>
+            <if test="cost != 0">
+                cost = #{cost},
+            </if>
+            <if test="notes != null">
+                notes = #{notes},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updatePStock">
+        UPDATE furry.product p
+        <trim prefix="SET" suffixOverrides=",">
+            <foreach collection="productPurchase" item="purchase" separator=",">
+                p.stock = CASE
+                WHEN p.id = #{purchase.productId} THEN p.stock - #{purchase.quantity}
+                ELSE p.stock
+                END
+            </foreach>
+        </trim>
+        WHERE p.id IN
+        <foreach collection="productPurchase" item="purchase" open="(" separator="," close=")">
+            #{purchase.productId}
+        </foreach>
+    </update>
+
+    <select id="productTxnList" resultType="com.jieee.pojo.ProductTransaction">
+        select
+            pt.*,
+            p.name AS product_name,
+            p.category_id AS product_Category_Id,
+            pc.name AS product_Category_Name,
+            u.username AS user_Name,
+            t.transaction_time AS transaction_Time,
+            t.update_time AS update_Time
+        from
+            furry.product_transaction as pt
+        join
+            furry.product p ON pt.product_id = p.id
+        join
+            furry.product_category pc ON p.category_id = pc.id
+        join
+            furry.user u ON pt.transaction_user_id = u.id
+        join
+            furry.transaction t ON pt.transaction_id = t.id
+    </select>
+
+    <delete id="deleteCartProduct">
+        DELETE FROM furry.cart
+        WHERE id IN
+        <foreach collection="productPurchase" item="purchase" open="(" separator="," close=")">
+            #{purchase.id}
+        </foreach>
+    </delete>
+</mapper>
+
+

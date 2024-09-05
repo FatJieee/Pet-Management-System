@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.StatisticMapper">
+
+    <select id="getTotalUser" resultType="com.jieee.pojo.Statistic">
+        SELECT
+            SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS ratioMale,
+            SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS ratioFemale
+        FROM furry.user
+    </select>
+
+    <select id="getTotalProduct" resultType="com.jieee.pojo.Statistic">
+        SELECT
+        count(*) AS totalProduct,
+        sum(CASE WHEN cost &gt; price THEN 1 ELSE 0 END) AS costExceeding,
+        sum(CASE WHEN stock &lt; 0 THEN 1 ELSE 0 END) AS negativeStock,
+        avg(CASE WHEN rating &gt; 0 THEN rating ELSE NULL END) / 5 * 100 AS ratioRate
+        from furry.product;
+    </select>
+    <select id="getTotalTransaction" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM furry.transaction
+    </select>
+    <select id="getPurchaseToday" resultType="java.lang.Integer">
+        SELECT
+            SUM(CASE WHEN type = 'Purchase' THEN 1 ELSE 0 END)
+        FROM furry.transaction
+        WHERE DATE(transaction_time) = CURRENT_DATE();
+    </select>
+    <select id="getPurchaseYesterday" resultType="java.lang.Integer">
+        SELECT
+            SUM(CASE WHEN type = 'Purchase' THEN 1 ELSE 0 END)
+        FROM furry.transaction
+        WHERE date(transaction_time) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY);
+    </select>
+    <select id="getOrderToday" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM furry.user_purchase_history
+        WHERE DATE(purchase_time) = CURRENT_DATE();
+    </select>
+    <select id="getOrderYesterday" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM furry.user_purchase_history
+        WHERE DATE(purchase_time) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY);
+    </select>
+    <select id="getsalesToday" resultType="java.lang.Integer">
+        SELECT
+            sum(ps.quantity)
+        FROM furry.user_purchase_history uph
+        join furry.product_sales ps ON uph.id = ps.user_purchase_id
+        WHERE DATE(uph.purchase_time) = CURRENT_DATE();
+    </select>
+    <select id="getsalesYesterday" resultType="java.lang.Integer">
+        SELECT
+            sum(ps.quantity)
+        FROM furry.user_purchase_history uph
+        join furry.product_sales ps ON uph.id = ps.user_purchase_id
+        WHERE DATE(uph.purchase_time) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY);
+    </select>
+</mapper>

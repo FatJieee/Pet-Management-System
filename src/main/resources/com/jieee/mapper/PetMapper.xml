@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.PetMapper">
+    <select id="getPetList" resultType="com.jieee.pojo.Pet">
+        select
+            p.*,
+            u.username as userName,
+            pb.name as breedName
+        from
+            furry.pet as p
+        join
+            furry.user as u on p.user_id = u.id
+        join
+            furry.pet_breed as pb on p.breed_id = pb.id
+        where verify = '0'
+    </select>
+
+    <insert id="addPet" useGeneratedKeys="true" keyProperty="petId">
+        INSERT INTO furry.pet (user_id, breed_id, name, image, age, gender, category, type, state,create_time, update_time)
+        VALUES (#{userId}, #{breedId}, #{name}, #{image}, #{age}, #{gender}, #{category}, #{type}, #{state}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="addAdoption">
+        insert into furry.adoption(pet_id,fee,detail,health_status,vaccination_status,neutering)
+        values
+        (#{petId},#{fee},#{detail},#{health},#{vaccination},#{neutering})
+    </insert>
+    <insert id="addLost">
+        insert into furry.lost(pet_id,location,detail,reward)
+        values
+            (#{petId},#{location},#{detail},#{reward})
+    </insert>
+
+    <select id="getAdoptionPetList" resultType="com.jieee.pojo.Pet">
+        select
+            p.*,
+            u.state
+        from
+            furry.pet as p
+        join
+            furry.user as u on p.user_id = u.id
+        where
+            p.type = "Adoption" and p.verify = "Approved"
+    </select>
+    <select id="searhAdoption" resultType="com.jieee.pojo.Pet">
+        select
+        p.*,
+        u.state
+        from
+        furry.pet as p
+        join furry.user as u on p.user_id = u.id
+        where
+        p.type = 'Adoption' and p.verify = "Approved"
+        <if test="breedId != null and breedId != 0">
+            and p.breed_id = #{breedId}
+        </if>
+        <if test="gender != null and gender != ''">
+            and p.gender = #{gender}
+        </if>
+        <if test="category != null">
+            and p.category = #{category}
+        </if>
+        <if test="minAge != null">
+            and p.age &gt;= #{minAge}
+        </if>
+        <if test="maxAge != null">
+            and p.age &lt;= #{maxAge}
+        </if>
+    </select>
+    <select id="getLostPetList" resultType="com.jieee.pojo.Pet">
+        select
+            p.*,
+            u.state
+        from
+            furry.pet as p
+                join
+            furry.user as u on p.user_id = u.id
+        where
+            p.type = "Lost" and p.verify = "Approved"
+    </select>
+    <select id="searhLost" resultType="com.jieee.pojo.Pet">
+        select
+        p.*,
+        u.state
+        from
+        furry.pet as p
+        join furry.user as u on p.user_id = u.id
+        where
+        p.type = 'Lost' and p.verify = "Approved"
+        <if test="breedId != null and breedId != 0">
+            and p.breed_id = #{breedId}
+        </if>
+        <if test="category != null">
+            and p.category = #{category}
+        </if>
+        <if test="state != null">
+            and p.state = #{state}
+        </if>
+        <if test="minAge != null">
+            and p.age &gt;= #{minAge}
+        </if>
+        <if test="maxAge != null">
+            and p.age &lt;= #{maxAge}
+        </if>
+    </select>
+    <select id="getPetById" resultType="com.jieee.pojo.Pet">
+        SELECT
+        p.*,
+        u.username as userName,
+        u.image as userImage,
+        u.email as email,
+        u.contact as contact,
+        pb.name as breedName
+        FROM
+        furry.pet AS p
+        JOIN
+        furry.user AS u ON p.user_id = u.id
+        join
+        furry.pet_breed as pb on p.breed_id = pb.id
+        WHERE
+        p.id = #{id}
+    </select>
+
+    <select id="getAdoptionByPetId" resultType="com.jieee.pojo.Pet">
+        select
+            a.fee as fee,
+            a.detail as detail,
+            a.health_status as health,
+            a.vaccination_status as vaccination,
+            a.neutering as neutering
+        from
+            furry.adoption as a
+        where
+            a.pet_id = #{id}
+    </select>
+
+    <select id="getLostByPetId" resultType="com.jieee.pojo.Pet">
+        SELECT
+            l.location as location,
+            l.detail as detail,
+            l.reward as reward
+        FROM
+            furry.lost AS l
+        WHERE
+            l.pet_id = #{id};
+    </select>
+    <select id="getPetListById" resultType="com.jieee.pojo.Pet">
+        select
+            p.id as id,
+            p.category,
+            p.type,
+            p.name,
+            p.age,
+            p.gender,
+            p.image,
+            p.create_time as createTime,
+            pb.name as breedName
+        from
+            furry.pet as p
+        join
+            furry.pet_breed as pb on p.breed_id = pb.id
+        where
+            p.user_id = #{userId} and p.verify = "Approved"
+    </select>
+    <select id="getLostPetWithParam" resultType="com.jieee.pojo.Pet">
+        select
+            p.*,
+            u.username as userName,
+            pb.name as breedName,
+            l.location,
+            l.reward
+        from furry.pet as p
+        join furry.user as u on p.user_id = u.id
+        join furry.pet_breed as pb on p.breed_id = pb.id
+        join furry.lost as l on p.id = l.pet_id
+    </select>
+    <select id="getAdoptPetWithParam" resultType="com.jieee.pojo.Pet">
+        select
+            p.*,
+            u.username as userName,
+            pb.name as breedName,
+            a.fee
+        from furry.pet as p
+                 join furry.user as u on p.user_id = u.id
+                 join furry.pet_breed as pb on p.breed_id = pb.id
+                 join furry.adoption as a on p.id = a.pet_id
+    </select>
+
+
+</mapper>

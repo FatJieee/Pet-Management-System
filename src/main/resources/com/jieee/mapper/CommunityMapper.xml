@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jieee.mapper.CommunityMapper">
+
+    <select id="getPostList" resultType="com.jieee.pojo.Post">
+        SELECT p.*,
+               u.username,
+               u.image AS userImage,
+               CASE
+                   WHEN #{userId} IS NOT NULL AND EXISTS (SELECT 1 FROM furry.post_like pl WHERE pl.post_id = p.id AND pl.user_id = #{userId}) THEN 'true'
+                   ELSE 'false'
+                   END AS userLiked,
+               (SELECT COUNT(*) FROM furry.post_like pl WHERE pl.post_id = p.id) AS likeCount
+        FROM furry.post AS p
+                 JOIN furry.user AS u ON p.user_id = u.id
+        WHERE p.verify = "Approved"
+        ORDER BY p.create_time DESC;
+    </select>
+
+    <select id="checkFirstPost" resultType="boolean">
+        SELECT CASE
+                   WHEN COUNT(*) = 0 THEN TRUE
+                   ELSE FALSE
+                   END AS firstPost
+        FROM furry.post
+        WHERE user_id = #{userId} and verify = 'Approved';
+    </select>
+
+    <select id="getCommentList" resultType="com.jieee.pojo.Comment">
+        select c.*,
+               u.image,
+               u.username,
+               u.image
+        from furry.comment as c
+        join furry.user as u on c.user_id = u.id
+    </select>
+    <select id="checkUserFirstPost" resultType="com.jieee.pojo.Post">
+        SELECT CASE
+                   WHEN COUNT(*) = 0 THEN TRUE
+                   ELSE FALSE
+                   END AS firstPost
+        FROM furry.post
+        WHERE user_id = #{userId} and verify = 'Approved';
+    </select>
+
+</mapper>
