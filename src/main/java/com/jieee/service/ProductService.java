@@ -2,7 +2,6 @@ package com.jieee.service;
 
 import com.jieee.pojo.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 public interface ProductService {

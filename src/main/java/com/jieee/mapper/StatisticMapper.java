@@ -25,5 +25,4 @@ public interface StatisticMapper {
 
     Integer getsalesYesterday();
 
-    Statistic test();
 }

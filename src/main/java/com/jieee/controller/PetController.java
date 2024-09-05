@@ -3,10 +3,9 @@ package com.jieee.controller;
 
 import com.jieee.pojo.PageBean;
 import com.jieee.pojo.Pet;
-import com.jieee.pojo.Product;
+
 import com.jieee.pojo.Result;
 import com.jieee.service.PetService;
-import com.jieee.utils.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

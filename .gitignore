@@ -1,0 +1,73 @@
+# 临时文件和日志
+*.log
+*.tmp
+*.lock
+*.swp
+*.swo
+*.bak
+
+# 编译输出
+*.class
+*.o
+*.out
+*.a
+*.so
+*.dll
+*.exe
+*.dylib
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Java
+*.war
+*.jar
+*.ear
+target/
+*.iml
+
+# IntelliJ IDEA / JetBrains
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+*.pdb
+*.cache
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.db
+
+# Environment files
+.env
+.env.*
+*.env.local
+.envrc
+
+# Git
+.git/
